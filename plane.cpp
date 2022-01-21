@@ -9,7 +9,14 @@
 Hit Plane::Intersection(const Ray& ray, int part) const
 {
     TODO;
-    return {0,0,0};
+
+    vec3 a = x1 - ray.endpoint;
+    double t = dot( a, normal ) / dot(ray.direction, normal);
+
+    if(!dot(ray.direction, normal) || (t<small_t)){
+        return{NULL,0.0};
+    }
+    return {this,t,part};
 }
 
 vec3 Plane::Normal(const vec3& point, int part) const
