@@ -15,7 +15,7 @@ Hit Plane::Intersection(const Ray& ray, int part) const
     double t = dot(a, normal) / b;
     
 
-    if(!dot(ray.direction, normal) && (t<small_t)){
+    if(!dot(ray.direction, normal) || (t<small_t)){
         return{NULL,0.0};
     }
     return {this,t,part};
