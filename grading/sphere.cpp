@@ -10,8 +10,8 @@ Hit Sphere::Intersection(const Ray& ray, int part) const
     double b, c, t1, t2;
     b = dot( (ray.direction * 2), (ray.endpoint - center)) ;
     c = dot( (ray.endpoint - center), (ray.endpoint - center)) - pow(radius,2);
-    t1 = -b + sqrt( pow(b,2) - 4*c);
-    t2 = -b - sqrt( pow(b,2) - 4*c);
+    t1 = (-b + sqrt( pow(b,2) - 4*c)) / 2;
+    t2 = (-b - sqrt( pow(b,2) - 4*c)) / 2;
 
     if(( pow(b,2) - 4*c) > 0){
         if(t2 > 0){
