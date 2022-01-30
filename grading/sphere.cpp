@@ -1,6 +1,8 @@
 #include "sphere.h"
 #include "ray.h"
 
+using namespace std;
+
 // Determine if the ray intersects with the sphere
 Hit Sphere::Intersection(const Ray& ray, int part) const
 {
@@ -13,13 +15,34 @@ Hit Sphere::Intersection(const Ray& ray, int part) const
     t1 = (-b + sqrt( pow(b,2) - 4*c)) / 2;
     t2 = (-b - sqrt( pow(b,2) - 4*c)) / 2;
 
-    if(( pow(b,2) - 4*c) > 0){
-        if(t2 > 0){
-            return {this,t2};
+if((pow(b,2) - 4*c) > 0) {
+  if(min(t1,t2) > 0) {
+    return{this,min(t1,t2),part}; //what you have already
+  }
+  else if(t2 > 0) {
+    return{this, t2, part}; //with t2
+  }
+  else if(t1 > 0) {
+    return{this, t1, part}; //with t1
+  }
+}
+
+    /*if(( pow(b,2) - 4*c) > 0){
+        if(min(t1,t2) > 0){
+            return{this, min(t1,t2), part};
         }
-        else{ return {this,t1}; }
-    }
-    return {NULL,0.0};
+        else if(max(t1,t2)>0){
+            return {this, max(t1,t2), part};
+        }
+    }*/
+
+        /*if(((t2 > 0) && (t1 > 0)) || ((t2>0) && (t1 < 0))){
+            return {this,t2,part};
+        }
+        else{
+            return {this,t1,part}; 
+        }*/
+    return {NULL,0.0,part};
 }
 
 vec3 Sphere::Normal(const vec3& point, int part) const
