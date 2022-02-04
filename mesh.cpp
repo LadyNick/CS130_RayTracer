@@ -46,33 +46,21 @@ Hit Mesh::Intersection(const Ray& ray, int part) const
     //there is a vector of vertices and a vector of triangles in the base class
     //vector<vec3> vertices         this holds the vertices, x,y,z's for each point         
     //vector<ivec3> triangles       this holds the triangles, the points used for each triangle
-    Hit returning_hit;
-    returning_hit.object = NULL;
-    returning_hit.dist = 0;
-    returning_hit.part = -1;
+    double distance = 0.0;
 
-    if(part >= 0){
-        if(Intersect_Triangle(ray, part, returning_hit.dist)){
-            returning_hit.object = this;
-            returning_hit.part = part;
+    if(part > 0){
+        if(Intersect_Triangle(ray, part, distance)){
+            return{this,distance,part};
         }
     }
     else{
-        returning_hit.dist = __DBL_MAX__;
-        for (unsigned i = 0; i < triangles.size(); i++) {
-            double temp;
-            if (Intersect_Triangle(ray, i, temp)) {
-                if (temp < returning_hit.dist) {
-                    returning_hit.object = this;
-                    returning_hit.dist = temp;
-                    returning_hit.part = i;
-                }
+        for(int i = 0; i < triangles.size(); ++i){
+            if(Intersect_Triangle(ray,i,distance)){
+                return{this,distance,i};
             }
-        }        
-
-
+        }
     }
-    return returning_hit;
+    return {NULL,0,0};
 }
 
 // Compute the normal direction for the triangle with index part.
@@ -113,35 +101,48 @@ bool Mesh::Intersect_Triangle(const Ray& ray, int tri, double& dist) const
     vec3 point_a = vertices[tri_shape[0]];
     vec3 point_b = vertices[tri_shape[1]];
     vec3 point_c = vertices[tri_shape[2]];
-    vec3 intersect_point = ray.Point(dist); //P = e + tu  == endpoint + dist * direction
-
-    //Hit test = Plane(point_a,Normal(point_a, tri)).Intersection(ray,tri);
-    //if(!test.object){ return false; }
-
+    vec3 point_p;
+    //P = e + tu  == endpoint + dist * direction
 
     vec3 ray_direction = ray.direction.normalized();
     vec3 seg_ab = point_b - point_a;
     vec3 seg_ac = point_c - point_a;
-    vec3 normal = intersect_point - point_a;
-    double area_abc = dot(cross(ray_direction,seg_ab), seg_ac); 
+    
+    vec3 normal = cross(point_c - point_b, point_a - point_b).normalized();
+    vec3 view = ray.direction.normalized();
+
+    bool plane_intersect = false;
+    if(dot(normal, view) == 0){ } //keep it false
+    else if( (dot(point_a - ray.endpoint, normal)/ dot(normal,view)) > small_t ){
+        point_p = ray.Point( (dot(point_a - ray.endpoint, normal)/ dot(normal,view)) );
+        plane_intersect = true;
+    }
+
+    //double area_abc = dot(cross(ray_direction,seg_ab), seg_ac); 
+    double area_abc = dot( cross(seg_ab,seg_ac), normal);
 
     if(area_abc == 0){
         return false;
     }
+if(!plane_intersect){return false;}
+    //vec3 seg_ap = point_p - point_a;
+   //double distance = -(dot(cross(seg_ab,seg_ac), seg_ap) / dot(cross(seg_ab,seg_ac), ray_direction));
 
-    double distance = -(dot(cross(seg_ab,seg_ac), normal) / dot(cross(seg_ab,seg_ac), ray_direction));
-
-if(distance > small_t){
-    double beta = dot(cross(seg_ac, ray_direction), normal) / area_abc;
-    double gamma = dot(cross(ray_direction, seg_ab), normal) / area_abc;
-    double alpha = 1 - gamma - beta;
+//if((point_p - ray.endpoint).magnitude() > small_t){
+    //double beta = dot(cross(seg_ac, ray_direction), seg_ap) / dot(cross(ray_direction,seg_ab), seg_ac);
+    //double gamma = dot(cross(ray_direction, seg_ab), seg_ap) / dot(cross(seg_ac,ray_direction),seg_ab);
+    
+    double alpha = dot(normal, cross(point_b - point_p, point_c - point_p)) / area_abc;
+    double beta = dot(normal, cross(point_c - point_p, point_a - point_p)) / area_abc;
+    //double gamma = dot( cross(seg_ab, seg_ap), normal) / area_abc;
+    double gamma = 1.0 - alpha - beta;
 
     //Point P --> P = alpha * A + beta * B + gamma * C
     if( (beta > -weight_tolerance) && (gamma > -weight_tolerance) && (alpha > -weight_tolerance)){
-        dist = distance;
+        dist = (point_p - ray.endpoint).magnitude();
         return true;
     }
-}
+//}
     return false;
 }
 

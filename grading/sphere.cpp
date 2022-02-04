@@ -27,21 +27,6 @@ if((pow(b,2) - 4*c) > 0) {
   }
 }
 
-    /*if(( pow(b,2) - 4*c) > 0){
-        if(min(t1,t2) > 0){
-            return{this, min(t1,t2), part};
-        }
-        else if(max(t1,t2)>0){
-            return {this, max(t1,t2), part};
-        }
-    }*/
-
-        /*if(((t2 > 0) && (t1 > 0)) || ((t2>0) && (t1 < 0))){
-            return {this,t2,part};
-        }
-        else{
-            return {this,t1,part}; 
-        }*/
     return {NULL,0.0,part};
 }
 
