@@ -43,7 +43,36 @@ void Mesh::Read_Obj(const char* file)
 Hit Mesh::Intersection(const Ray& ray, int part) const
 {
     TODO;
-    return {};
+    //there is a vector of vertices and a vector of triangles in the base class
+    //vector<vec3> vertices         this holds the vertices, x,y,z's for each point         
+    //vector<ivec3> triangles       this holds the triangles, the points used for each triangle
+    Hit returning_hit;
+    returning_hit.object = NULL;
+    returning_hit.dist = 0;
+    returning_hit.part = -1;
+
+    if(part >= 0){
+        if(Intersect_Triangle(ray, part, returning_hit.dist)){
+            returning_hit.object = this;
+            returning_hit.part = part;
+        }
+    }
+    else{
+        returning_hit.dist = __DBL_MAX__;
+        for (unsigned i = 0; i < triangles.size(); i++) {
+            double temp;
+            if (Intersect_Triangle(ray, i, temp)) {
+                if (temp < returning_hit.dist) {
+                    returning_hit.object = this;
+                    returning_hit.dist = temp;
+                    returning_hit.part = i;
+                }
+            }
+        }        
+
+
+    }
+    return returning_hit;
 }
 
 // Compute the normal direction for the triangle with index part.
@@ -51,7 +80,17 @@ vec3 Mesh::Normal(const vec3& point, int part) const
 {
     assert(part>=0);
     TODO;
-    return vec3();
+    ivec3 tri_shape = triangles[part];   //part refers to which triangle I assume
+    vec3 point_a = vertices[tri_shape[0]];  //this holds point A
+    vec3 point_b = vertices[tri_shape[1]];  //point B
+    vec3 point_c = vertices[tri_shape[2]];  //point C
+
+    //from 1/27 notes
+    vec3 seg_ab = point_b - point_a;
+    vec3 seg_ac = point_c - point_a;
+    vec3 normal = cross(seg_ab, seg_ac).normalized();
+
+    return normal;
 }
 
 // This is a helper routine whose purpose is to simplify the implementation
@@ -69,6 +108,40 @@ vec3 Mesh::Normal(const vec3& point, int part) const
 bool Mesh::Intersect_Triangle(const Ray& ray, int tri, double& dist) const
 {
     TODO;
+    //tri is providing which triangle, and we want to make a vertice for each pt
+    ivec3 tri_shape = triangles[tri];
+    vec3 point_a = vertices[tri_shape[0]];
+    vec3 point_b = vertices[tri_shape[1]];
+    vec3 point_c = vertices[tri_shape[2]];
+    vec3 intersect_point = ray.Point(dist); //P = e + tu  == endpoint + dist * direction
+
+    //Hit test = Plane(point_a,Normal(point_a, tri)).Intersection(ray,tri);
+    //if(!test.object){ return false; }
+
+
+    vec3 ray_direction = ray.direction.normalized();
+    vec3 seg_ab = point_b - point_a;
+    vec3 seg_ac = point_c - point_a;
+    vec3 normal = intersect_point - point_a;
+    double area_abc = dot(cross(ray_direction,seg_ab), seg_ac); 
+
+    if(area_abc == 0){
+        return false;
+    }
+
+    double distance = -(dot(cross(seg_ab,seg_ac), normal) / dot(cross(seg_ab,seg_ac), ray_direction));
+
+if(distance > small_t){
+    double beta = dot(cross(seg_ac, ray_direction), normal) / area_abc;
+    double gamma = dot(cross(ray_direction, seg_ab), normal) / area_abc;
+    double alpha = 1 - gamma - beta;
+
+    //Point P --> P = alpha * A + beta * B + gamma * C
+    if( (beta > -weight_tolerance) && (gamma > -weight_tolerance) && (alpha > -weight_tolerance)){
+        dist = distance;
+        return true;
+    }
+}
     return false;
 }
 
