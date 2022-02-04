@@ -43,6 +43,21 @@ Shade_Surface(const Ray& ray,const vec3& intersection_point,
         light_reflection = light_reflection.normalized();
         view_ray =  ray.direction.normalized() * -1;
 
+        if(world.enable_shadows){
+            Ray shadow_ray;
+            shadow_ray.direction = light_vector_normalized;
+            shadow_ray.endpoint = intersection_point;
+            Hit shadow_hit = world.Closest_Intersection(shadow_ray);
+
+            if(shadow_hit.object != NULL){
+                if(shadow_hit.dist < (world.lights.at(i)->position - intersection_point).magnitude() ){
+                    continue;
+                    //this continue will skip the remainder of this loop,
+                    //so the diffuse and specular will never be set and it stays ambient
+                }
+            }
+        }
+
         
         diffuse += color_diffuse * diffuse_intensity * max(dot(normal,light_vector_normalized), 0.0);
        specular += color_specular * specular_intensity * pow(max( dot(view_ray, light_reflection), 0.0), specular_power);
