@@ -22,10 +22,10 @@ Hit Plane::Intersection(const Ray& ray, int part) const
         }
     }
     else{
-        return{NULL, t, part};
+        return{NULL, t, -1};
     }
     
-    return {this,t,part};
+    return {this,t,-1};
 }
 
 vec3 Plane::Normal(const vec3& point, int part) const

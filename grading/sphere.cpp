@@ -27,7 +27,7 @@ if((pow(b,2) - 4*c) > 0) {
   }
 }
 
-    return {NULL,0.0,part};
+    return {NULL,0.0,-1};
 }
 
 vec3 Sphere::Normal(const vec3& point, int part) const

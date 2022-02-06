@@ -46,21 +46,33 @@ Hit Mesh::Intersection(const Ray& ray, int part) const
     //there is a vector of vertices and a vector of triangles in the base class
     //vector<vec3> vertices         this holds the vertices, x,y,z's for each point         
     //vector<ivec3> triangles       this holds the triangles, the points used for each triangle
-    double distance = 0.0;
+   Hit returning_hit;
+    returning_hit.object = NULL;
+    returning_hit.dist = 0;
+    returning_hit.part = -1;
 
-    if(part > 0){
-        if(Intersect_Triangle(ray, part, distance)){
-            return{this,distance,part};
+    if(part >= 0 && part < (int)triangles.size()){
+        if(Intersect_Triangle(ray, part, returning_hit.dist)){
+            returning_hit.object = this;
+            returning_hit.part = part;
         }
     }
     else{
-        for(int i = 0; i < triangles.size(); ++i){
-            if(Intersect_Triangle(ray,i,distance)){
-                return{this,distance,i};
+        returning_hit.dist = __DBL_MAX__;
+        double temp;
+        for (unsigned i = 0; i < triangles.size(); i++) {
+            if (Intersect_Triangle(ray, i, temp)) {
+                if (temp < returning_hit.dist) {
+                    returning_hit.object = this;
+                    returning_hit.dist = temp;
+                    returning_hit.part = i;
+                }
             }
-        }
+        }        
+
+
     }
-    return {NULL,0,0};
+    return returning_hit;
 }
 
 // Compute the normal direction for the triangle with index part.
@@ -95,7 +107,7 @@ vec3 Mesh::Normal(const vec3& point, int part) const
 // two triangles.
 bool Mesh::Intersect_Triangle(const Ray& ray, int tri, double& dist) const
 {
-    TODO;
+     TODO;
     //tri is providing which triangle, and we want to make a vertice for each pt
     ivec3 tri_shape = triangles[tri];
     vec3 point_a = vertices[tri_shape[0]];
@@ -104,7 +116,7 @@ bool Mesh::Intersect_Triangle(const Ray& ray, int tri, double& dist) const
     vec3 point_p;
     //P = e + tu  == endpoint + dist * direction
 
-    vec3 ray_direction = ray.direction.normalized();
+    //vec3 ray_direction = ray.direction.normalized();
     vec3 seg_ab = point_b - point_a;
     vec3 seg_ac = point_c - point_a;
     
@@ -133,7 +145,7 @@ if(!plane_intersect){return false;}
     //double gamma = dot(cross(ray_direction, seg_ab), seg_ap) / dot(cross(seg_ac,ray_direction),seg_ab);
     
     double alpha = dot(normal, cross(point_b - point_p, point_c - point_p)) / area_abc;
-    double beta = dot(normal, cross(point_c - point_p, point_a - point_p)) / area_abc;
+    double beta = dot(normal, cross(point_p - point_a, point_c - point_a)) / area_abc;
     //double gamma = dot( cross(seg_ab, seg_ap), normal) / area_abc;
     double gamma = 1.0 - alpha - beta;
 
